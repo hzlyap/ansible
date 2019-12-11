@@ -1,8 +1,9 @@
 ---
-- hosts: bastion-release-rnd
+- hosts: jenkins_server
   become_user: root
   vars_files:
     - ./group_vars/treasurehunt-release.vault
+    - ./group_vars/treasurehunt-release.yml
   roles: 
     - ansible
-#    - treasurehunt-release
+    - treasurehunt-release
