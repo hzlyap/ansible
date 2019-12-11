@@ -1,0 +1,100 @@
+---
+- name: Register new task definition
+  ecs_taskdefinition:
+    containers:
+    - name: treasurehunt-api-release
+      cpu: 256
+      command:
+        - >
+          start.sh
+      essential: true
+      environment:
+        - name: "API_URL"
+          value: "https://apiv2.release.aws.imfree.com/api/v1"
+        - name: "AWS_CONFIG"
+          value: "/app/s3.json"
+        - name: "AWS_MEDIA_URL"
+          value: "https://static-apiv2.release.aws.imfree.com/"
+        - name: "AWS_S3_ACCESS_KEY_ID"
+          value: "AKIAUZWUS5PBYJ7RCLVY"
+        - name: "AWS_S3_BUCKET"
+          value: "treasurehunt-release"
+        - name: "AWS_S3_SECRET_ACCESS_KEY"
+          value: "{{ vault_REL_AWS_S3_SECRET_ACCESS_KEY }}"
+        - name: "AWS_SNS_ACCESS_KEY_ID"
+          value: "AKIAUZWUS5PBSWNESELM"
+        - name: "AWS_SNS_SECRET_ACCESS_KEY"
+          value: "{{ vault_REL_AWS_SNS_SECRET_ACCESS_KEY }}"
+        - name: "FCM_PUSH_TOKEN"
+          value: "{{ vault_REL_FCM_PUSH_TOKEN }}"
+        - name: "FCM_SUBSCRIBE_URL"
+          value: "https://iid.googleapis.com/iid/v1:batchAdd"
+        - name: "FCM_UNSUBSCRIBE_URL"
+          value: "https://iid.googleapis.com/iid/v1:batchRemove"
+        - name: "HOST"
+          value: "apiv2.release.aws.imfree.com"
+        - name: "JWT_EXPIRATION"
+          value: "172800"
+        - name: "JWT_ISSUER"
+          value: "IMFREEINC"
+        - name: "JWT_REFRESH_EXPIRATION"
+          value: "604800"
+        - name: "JWT_REFRESH_SECRET"
+          value: "{{ vault_REL_JWT_REFRESH_SECRET }}"
+        - name: "JWT_SECRET"
+          value: "{{ vault_REL_JWT_SECRET }}"
+        - name: "KINESIS_CAMPAIGN_STREAM"
+          value: "rel-kinesis-singex-kibana-dashboard-campaign-KinesisStream1-1GSEXTTFURG8J"
+        - name: "KINESIS_IMPRESSION_STREAM"
+          value: "rel-kinesis-singex-kibana-dashboard-impression-KinesisStream1-TO4JTXQUXSCH"
+        - name: "KINESIS_PROMO_STREAM"
+          value: "rel-kinesis-singex-kibana-dashboard-promo-KinesisStream1-ZSUKI3GFA5PX"
+        - name: "MOBILE360_API_URL"
+          value: "https://smsapi.mobile360.ph/v2/api/broadcast"
+        - name: "MOBILE360_PASSWORD"
+          value: "{{ vault_REL_MOBILE360_PASSWORD }}"
+        - name: "MOBILE360_SHORTCODE_MASK"
+          value: "IMFREEDEMO"
+        - name: "MOBILE360_USERNAME"
+          value: "imfree_dev"
+        - name: "MQTT_BROKER"
+          value: "mqtt://broker.mqttdashboard.com"
+        - name: "NODE_ENV"
+          value: "staging"
+        - name: "PG_DB"
+          value: "treasurehunt"
+        - name: "PG_HOST"
+          value: "rel-trehunt-x2cd2qhktk.cfr6syuisoya.ap-southeast-1.rds.amazonaws.com"
+        - name: "PG_PASSWORD"
+          value: "{{ vault_REL_PG_PASSWORD }}"
+        - name: "PG_PORT"
+          value: "5432"
+        - name: "PG_USER"
+          value: "ethan"
+        - name: "PORT"
+          value: "3000"
+        - name: "REDIRECTION_URL"
+          value: "https://imfreemobile.club/"
+        - name: "USE_DOCKER"
+          value: "yes"
+      image: 957522172514.dkr.ecr.us-east-1.amazonaws.com/treasurehunt-api-release:latest
+      logConfiguration:
+        logDriver: awslogs
+        options:
+          awslogs-group: /ecs/treasurehunt-api-release
+          awslogs-region: us-east-1
+          awslogs-stream-prefix: ecs
+      memoryReservation: 512
+      portMappings:
+      - containerPort: 3000
+        hostPort: 3000
+    execution_role_arn: arn:aws:iam::957522172514:role/treasurehunt-ecs-task-execution-role
+    family: treasurehunt-api-release
+    force_create: yes
+    launch_type: FARGATE
+    cpu: 512
+    memory: 1024
+    network_mode: awsvpc
+    region: us-east-1
+    state: present
+  register: task_output

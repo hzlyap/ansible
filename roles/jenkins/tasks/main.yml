@@ -1,0 +1,17 @@
+---
+- name: Add jenkins repository key
+  command: wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | sudo apt-key add -
+
+- name: Append package to sources.list
+  command: echo deb https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
+
+- name: Run apt-get update
+  apt:
+    name: jenkins
+    update_cache: yes
+
+- name: Open firewall for jenkins
+  command: ufw allow 8080
+
+- name: Get admin password
+  command: cat /var/lib/jenkins/secrets/initialAdminPassword

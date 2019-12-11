@@ -1,0 +1,9 @@
+---
+- name: Get pip via curl
+  command:  curl -O https://bootstrap.pypa.io/get-pip.py
+
+- name: Install pip
+  command: python get-pip.py --user
+
+- name: Install ansible
+  command: /root/.local/bin/pip install ansible
