@@ -1,5 +1,7 @@
 [localhost]
-localhost	ansible_host=localhost ansible_connection=local ansible_python_interpreter=/usr/local/bin/python
+localhost	ansible_host=localhost ansible_connection=local ansible_python_interpreter=/bin/python
 
-[servers]
-bastion-release-rnd   ansible_host=23.22.51.82 ansible_user=ansible ansible_become=true ansible_become_method=sudo
+[tools]
+jenkins         ansible_host=54.174.67.223 ansible_user=centos ansible_become=true ansible_become_method=sudo ansible_python_interpreter=/bin/python
+#spacewalk
+
