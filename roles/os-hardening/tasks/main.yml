@@ -1,0 +1,578 @@
+---
+- name: Create CIS.conf
+  template:
+    src: 'etc/modprobe.d/CIS.conf.j2'
+    dest: '/etc/modprobe.d/CIS.conf'
+    owner: root
+    group: root
+    mode: '0444'
+
+- name: Unload cramfs module
+  modprobe:
+    name: cramfs
+    state: absent
+
+- name: Unload hfs module
+  modprobe:
+    name: hfs
+    state: absent
+
+- name: Unload hfsplus module
+  modprobe:
+    name: hfsplus
+    state: absent
+
+- name: Unload squashfs module
+  modprobe:
+    name: squashfs
+    state: absent
+
+- name: Unload udf module
+  modprobe:
+    name: udf
+    state: absent
+
+- name: Ensure sticky bit is set
+  shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | xargs chmod a+t
+
+- name: Ensure AIDE is installed
+  yum:
+    name: aide
+    state: present
+
+- name: Ensure filesystem integrity is regularly checked
+  command: echo "0 5 * * * /usr/sbin/aide --check" >> /etc/crontab
+
+- name: Secure boot settings
+  file:
+    path: '/boot/grub2/grub.cfg'
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure authentication required for single user mode
+  template:
+    src: 'usr/lib/systemd/system/rescue.service.j2'
+    dest: '/usr/lib/systemd/system/rescue.service'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure core dumps are restricted in limits.conf
+  template:
+    src: 'etc/security/limits.conf.j2'
+    dest: '/etc/security/limits.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure core dumps are restricted in sysctl.conf
+  template:
+    src: 'etc/sysctl.conf.j2'
+    dest: '/etc/sysctl.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set the active kernel parameter for core dump
+  command: sysctl -w fs.suid_dumpable=0
+
+- name: Set the active kernel parameter for address space layout randomization
+  command: sysctl -w kernel.randomize_va_space=2
+
+- name: Remove prelink
+  yum:
+    name: prelink
+    state: absent
+
+- name: Configure SELinux in grub default
+  template:
+    src: 'etc/default/grub.j2'
+    dest: '/etc/default/grub'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Update the grub2 configuration
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+- name: Ensure SELinux state is enforcing and targeted
+  template:
+    src: 'etc/selinux/config.j2'
+    dest: '/etc/selinux/config'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure SETroubleshoot is not installed
+  yum:
+    name: setroubleshoot
+    state: absent
+
+- name: Ensure MCS Translation Service (mctrans) is not installed
+  yum:
+    name: mctrans
+    state: absent
+
+- name: Ensure SELinux is installed
+  yum:
+    name: libselinux
+    state: present
+
+- name: Ensure message of the day is configured properly
+  template:
+    src: 'etc/motd.j2'
+    dest: '/etc/motd'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Remove message from /etc/issue.net
+  template:
+    src: 'etc/issue.net.j2'
+    dest: '/etc/issue.net'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/issue are configured
+  file:
+    path: /etc/issue
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure updates, patches, and additional security software are installed
+  command: yum update --security
+
+- name: Ensure chrony is configured
+  template:
+    src: 'etc/chrony.conf.j2'
+    dest: '/etc/chrony.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restrict /etc/ntp.conf
+  template:
+    src: 'etc/ntp.conf.j2'
+    dest: '/etc/ntp.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure ntp is configured
+  template:
+    src: 'etc/sysconfig/ntpd.j2'
+    dest: '/etc/sysconfig/ntpd'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure chronyd is configured
+  template:
+    src: 'etc/sysconfig/chronyd.j2'
+    dest: '/etc/sysconfig/chronyd'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure X Window System is not installed
+  yum:
+    name: xorg-x11*
+    state: absent
+
+- name: Ensure NFS and RPC are not enabled
+  command: "{{ item }}"
+  with_items:
+    - systemctl disable nfs
+    - systemctl disable nfs-server
+    - systemctl disable rpcbind
+
+- name: Ensure mail transfer agent is configured for local-only mode
+  template:
+    src: 'etc/postfix/main.cf.j2'
+    dest: '/etc/postfix/main.cf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart postfix
+  command: systemctl restart postfix
+
+- name: Ensure rsync service is not enabled
+  command: systemctl disable rsyncd
+
+- name: Ensure NIS Client is not installed
+  yum:
+    name: ypbind
+    state: absent
+
+- name: Ensure rsh client is not installed
+  yum:
+    name: rsh
+    state: absent
+
+- name: Ensure talk client is not installed
+  yum:
+    name: talk
+    state: absent
+
+- name: Ensure telnet client is not installed
+  yum:
+    name: telnet
+    state: absent
+
+- name: Ensure LDAP client is not installed
+  yum:
+    name: openldap-clients
+    state: absent
+
+- name: Set parameters on sysctl.conf
+  template:
+    src: 'etc/sysctl.conf.j2'
+    dest: '/etc/sysctl.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure IP forwarding is disabled
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.ip_forward=0
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure packet redirect sending is disabled
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.send_redirects=0
+    - sysctl -w net.ipv4.conf.default.send_redirects=0
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure source routed packets are not accepted
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.accept_source_route=0
+    - sysctl -w net.ipv4.conf.default.accept_source_route=0
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure ICMP redirects are not accepted
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.accept_redirects=0
+    - sysctl -w net.ipv4.conf.default.accept_redirects=0
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure secure ICMP redirects are not accepted
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.secure_redirects=0
+    - sysctl -w net.ipv4.conf.default.secure_redirects=0
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure suspicious packets are logged
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.log_martians=1
+    - sysctl -w net.ipv4.conf.default.log_martians=1
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure broadcast ICMP requests are ignored
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure bogus ICMP responses are ignored
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure Reverse Path Filtering is enabled
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.conf.all.rp_filter=1
+    - sysctl -w net.ipv4.conf.default.rp_filter=1
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure TCP SYN Cookies is enabled
+  command: "{{ item }}"
+  with_items:
+    - sysctl -w net.ipv4.tcp_syncookies=1
+    - sysctl -w net.ipv4.route.flush=1
+
+- name: Ensure TCP Wrappers is installed
+  yum:
+    name: tcp_wrappers
+    state: present
+
+- name: Ensure permissions on /etc/hosts.allow are configured
+  file:
+    path: /etc/hosts.allow
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/hosts.deny are configured
+  file:
+    path: /etc/hosts.deny
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure iptables is installed
+  yum:
+    name: iptables
+    state: present
+
+- name: Ensure loopback traffic is configured
+  command: "{{ item }}"
+  with_items:
+    - iptables -A INPUT -i lo -j ACCEPT
+    - iptables -A OUTPUT -o lo -j ACCEPT
+    - iptables -A INPUT -s 127.0.0.0/8 -j DROP
+
+- name: Ensure auditd service is enabled
+  command: systemctl enable auditd
+
+- name: Ensure auditing for processes that start prior to auditd is enabled
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+- name: Set rules on audit.rules
+  template:
+    src: 'etc/audit/audit.rules.j2'
+    dest: '/etc/audit/audit.rules'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure rsyslog service is enabled
+  command: systemctl enable rsyslog
+
+- name: Ensure rsyslog default file permissions configured
+  template:
+    src: 'etc/rsyslog.conf.j2'
+    dest: '/etc/rsyslog.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure rsyslog is installed
+  yum:
+    name: rsyslog
+    state: present
+
+- name: Ensure permissions on all logfiles are configured
+  command: find /var/log -type f -exec chmod g-wx,o-rwx {} +
+
+- name: Ensure cron daemon is enabled
+  command: systemctl enable crond
+
+- name: Ensure permissions on /etc/crontab are configured
+  file:
+    name: /etc/crontab
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Ensure permissions on /etc/cron.hourly are configured
+  file:
+    name: /etc/cron.hourly
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure permissions on /etc/cron.daily are configured
+  file:
+    name: /etc/cron.daily
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure permissions on /etc/cron.weekly are configured
+  file:
+    name: /etc/cron.weekly
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure permissions on /etc/cron.monthly are configured
+  file:
+    name: /etc/cron.monthly
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Ensure permissions on /etc/cron.d are configured
+  file:
+    name: /etc/cron.d
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Delete /etc/cron.deny
+  file:
+    path: /etc/cron.deny
+    state: absent
+
+- name: Delete /etc/at.deny
+  file:
+    path: /etc/at.deny
+    state: absent
+
+- name: Ensure permissions on /etc/cron.allow
+  file:
+    path: /etc/cron.allow
+    owner: root
+    group: root
+    mode: '0600'
+    state: touch
+
+- name: Ensure permissions on /etc/at.allow
+  file:
+    path: /etc/at.allow
+    owner: root
+    group: root
+    mode: '0600'
+    state: touch
+
+- name: Ensure permissions on /etc/ssh/sshd_config are configured
+  file:
+    name: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Set parameters on sshd_config
+  template:
+    src: 'etc/ssh/sshd_config.j2'
+    dest: '/etc/ssh/sshd_config'
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Reload ssh configuration
+  command: systemctl reload sshd
+
+- name: Set parameters on password-auth
+  template:
+    src: 'etc/pam.d/password-auth.j2'
+    dest: '/etc/pam.d/password-auth'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set parameters on system-auth
+  template:
+    src: 'etc/pam.d/system-auth.j2'
+    dest: '/etc/pam.d/system-auth'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set parameters on pwquality.conf
+  template:
+    src: 'etc/security/pwquality.conf.j2'
+    dest: '/etc/security/pwquality.conf'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set parameters on login.defs
+  template:
+    src: 'etc/login.defs.j2'
+    dest: '/etc/login.defs'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure default group for the root account is GID 0
+  command: usermod -g 0 root
+
+- name: Ensure default user umask is 027 in /etc/bashrc
+  template:
+    src: 'etc/bashrc.j2'
+    dest: '/etc/bashrc'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure default user umask is 027 in /etc/profile
+  template:
+    src: 'etc/profile.j2'
+    dest: '/etc/profile'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure access to the su command is restricted
+  template:
+    src: 'etc/pam.d/su.j2'
+    dest: '/etc/pam.d/su'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/passwd are configured
+  file:
+    name: /etc/passwd
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/shadow are configured
+  file:
+    name: /etc/shadow
+    owner: root
+    group: root
+    mode: '0000'
+
+- name: Ensure permissions on /etc/group are configured
+  file:
+    name: /etc/group
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/gshadow are configured
+  file:
+    name: /etc/gshadow
+    owner: root
+    group: root
+    mode: '0000'
+
+- name: Ensure permissions on /etc/passwd- are configured
+  file:
+    name: /etc/passwd-
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/shadow- are configured
+  file:
+    name: /etc/shadow-
+    owner: root
+    group: root
+    mode: '0000'
+
+- name: Ensure permissions on /etc/group- are configured
+  file:
+    name: /etc/group-
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure permissions on /etc/gshadow- are configured
+  file:
+    name: /etc/gshadow-
+    owner: root
+    group: root
+    mode: '0000'
+
+- name: Set locale in /etc/environment
+  template:
+    src: 'etc/environment.j2'
+    dest: '/etc/environment'
+    owner: root
+    group: root

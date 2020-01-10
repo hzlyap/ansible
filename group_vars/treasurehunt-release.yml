@@ -33,7 +33,7 @@ TH_REL_ENV_MOBILE360_USERNAME: imfree_dev
 TH_REL_ENV_MQTT_BROKER: mqtt://broker.mqttdashboard.com
 TH_REL_ENV_NODE_ENV: staging
 TH_REL_ENV_PG_DB: treasurehunt
-TH_REL_ENV_PG_HOST: rel-trehunt-x2cd2qhktk.cfr6syuisoya.ap-southeast-1.rds.amazonaws.com
+TH_REL_ENV_PG_HOST: rel-treasurehunt-nvirginia.c8eq6hrajnpe.us-east-1.rds.amazonaws.com
 TH_REL_ENV_PG_PORT: 5432
 TH_REL_ENV_PG_USER: ethan
 TH_REL_ENV_PORT: 3000
