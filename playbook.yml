@@ -1,15 +1,17 @@
 ---
-- hosts: localhost
+#- hosts: jenkins
+#  become_user: root
+#  roles:
+#    - ansible
+
+#- hosts: hardening
+#  become_user: root
+#  roles:
+#    - os-hardening
+
+- hosts: bastion
   become_user: root
   vars_files:
-    - ./group_vars/treasurehunt-release.vault
-    - ./group_vars/treasurehunt-release.yml
-  roles: 
-    - treasurehunt-release
-
-- hosts: tools
-  become_user: root
+    - ./group_vars/ssh-keys.vault
   roles:
-    - ansible
-
-
+    - ssh-keys

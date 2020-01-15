@@ -1,0 +1,75 @@
+---
+- name: Create group
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - devops
+    - ajumali
+    - hyap
+    - jdcastro
+    - jungriano
+    - rgeronimo
+
+- name: Create user
+  user:
+    name: "{{ item }}"
+    group: "{{ item }}"
+    shell: /bin/bash
+  with_items:
+    - devops
+    - ajumali
+    - hyap
+    - jdcastro
+    - jungriano
+    - rgeronimo
+
+- name: Create .ssh directory
+  file:
+    path: /home/{{ item }}/.ssh
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: '0700'
+    state: directory
+  with_items:
+    - devops
+    - ajumali
+    - hyap
+    - jdcastro
+    - jungriano
+    - rgeronimo
+
+- name: Create .ssh/authorized_keys file
+  file:
+    path: /home/{{ item }}/.ssh/authorized_keys
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: '0600'
+    state: touch
+  with_items:
+    - devops
+    - ajumali
+    - hyap
+    - jdcastro
+    - jungriano
+    - rgeronimo
+
+- name: Add DevOps key in their own .ssh/authorized_keys
+  shell: echo "{{ item.key }}" >> /home/{{ item.user }}/.ssh/authorized_keys
+  with_items:
+    - { "user": "devops", "key": "{{ lookup('vars', 'vault_devops') }}" }
+    - { "user": "ajumali", "key": "{{ lookup('vars', 'vault_ajumali') }}" }
+    - { "user": "hyap", "key": "{{ lookup('vars', 'vault_hyap') }}" }
+    - { "user": "jdcastro", "key": "{{ lookup('vars', 'vault_jdcastro') }}" }
+    - { "user": "jungriano", "key": "{{ lookup('vars', 'vault_jungriano') }}" }
+    - { "user": "rgeronimo", "key": "{{ lookup('vars', 'vault_rgeronimo') }}" }
+
+- name: Remove users
+  user:
+    name: "{{ item }}"
+    state: absent
+    remove: yes
+  with_items:
+    - rgernomino
+    - aumali
+    - rgeronomino
