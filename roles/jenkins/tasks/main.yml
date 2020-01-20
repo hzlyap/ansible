@@ -1,17 +1,25 @@
----
-- name: Add jenkins repository key
-  command: wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | sudo apt-key add -
+- name: Adding Jenking Repo
+  get_url:
+    url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+    dest: /etc/yum.repos.d/
+    mode: '0755'
 
-- name: Append package to sources.list
-  command: echo deb https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list
+- rpm_key:
+    state: present
+    key: http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
 
-- name: Run apt-get update
-  apt:
+- name: Install jenkins
+  yum:
     name: jenkins
-    update_cache: yes
+    state: latest
 
-- name: Open firewall for jenkins
-  command: ufw allow 8080
+- name: Install java
+  yum:
+    name: java
+    state: latest
 
-- name: Get admin password
-  command: cat /var/lib/jenkins/secrets/initialAdminPassword
+- name: Start jenkins on startup
+  service: 
+    name: jenkins
+    enabled: yes
+    state: started

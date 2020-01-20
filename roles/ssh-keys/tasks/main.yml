@@ -1,9 +1,18 @@
 ---
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
 - name: Create group
   group:
     name: "{{ item }}"
     state: present
   with_items:
+    - wheel
     - devops
     - ajumali
     - hyap
@@ -15,6 +24,7 @@
   user:
     name: "{{ item }}"
     group: "{{ item }}"
+    groups: wheel
     shell: /bin/bash
   with_items:
     - devops
@@ -55,7 +65,7 @@
     - rgeronimo
 
 - name: Add DevOps key in their own .ssh/authorized_keys
-  shell: echo "{{ item.key }}" >> /home/{{ item.user }}/.ssh/authorized_keys
+  shell: echo "{{ item.key }}" > /home/{{ item.user }}/.ssh/authorized_keys
   with_items:
     - { "user": "devops", "key": "{{ lookup('vars', 'vault_devops') }}" }
     - { "user": "ajumali", "key": "{{ lookup('vars', 'vault_ajumali') }}" }

@@ -1,17 +1,4 @@
 ---
-- name: Create ansible group
-  group:
-    name: ansible
-    state: present
-  when:
-    - "'ansible' in groups"
-
-- name: Create ansible user
-  user:
-    name: ansible
-    group: ansible
-    home: /home/ansible
-
 - name: Check installed packages
   package_facts:
     manager: auto
@@ -33,3 +20,11 @@
 
 - name: Install boto and botocore
   command: pip install boto3 botocore
+
+- name: Change permissions for ansible module in python
+  file:
+    path: '/usr/lib/python2.7/site-packages'
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
