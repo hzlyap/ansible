@@ -3,3 +3,8 @@
   yum:
     name: git
     state: present
+
+- name: Ensure Telnet is installed
+  yum:
+    name: telnet
+    state: present

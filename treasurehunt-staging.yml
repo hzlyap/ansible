@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  become_user: root
+  vars_files:
+    - ./group_vars/treasurehunt-staging.vault
+  roles: 
+    - treasurehunt-api

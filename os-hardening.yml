@@ -1,0 +1,8 @@
+---
+- hosts: hardening
+  become_user: root
+  vars_files:
+    - ./group_vars/ssh-keys.vault
+  roles:
+    - os-hardening
+    - ssh-keys

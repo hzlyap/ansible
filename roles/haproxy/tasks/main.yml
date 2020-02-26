@@ -1,0 +1,4 @@
+- name: Install haproxy
+  command: yum install -y haproxy
+- name: restart
+  service: name=haproxy state=restarted

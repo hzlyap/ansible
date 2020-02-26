@@ -1,0 +1,146 @@
+---
+- name: Register new task definition
+  ecs_taskdefinition:
+    containers:
+    - name: "{{ TH_CONTAINER_NAME }}"
+      cpu: "{{ TH_CONTAINER_CPU }}"
+      command:
+        - >
+          start.sh
+      essential: true
+      environment:
+        - name: "HOST"
+          value: "{{ TH_ENV_HOST }}"
+        - name: "PORT"
+          value: "{{ TH_ENV_PORT }}"
+        - name: "NODE_ENV"
+          value: "{{ TH_ENV_NODE_ENV }}"
+        - name: "FCM_PUSH_TOKEN"
+          value: "{{ TH_ENV_FCM_PUSH_TOKEN }}"
+        - name: "PG_HOST"
+          value: "{{ TH_ENV_PG_HOST }}"
+        - name: "PG_PORT"
+          value: "{{ TH_ENV_PG_PORT }}"
+        - name: "PG_USER"
+          value: "{{ TH_ENV_PG_USER }}"
+        - name: "PG_PASSWORD"
+          value: "{{ TH_ENV_PG_PASSWORD }}"
+        - name: "PG_DB"
+          value: "{{ TH_ENV_PG_DB }}"
+        - name: "MQTT_BROKER"
+          value: "{{ TH_ENV_MQTT_BROKER }}"
+        - name: "MOBILE360_USERNAME"
+          value: "{{ TH_ENV_MOBILE360_USERNAME }}"
+        - name: "MOBILE360_PASSWORD"
+          value: "{{ TH_ENV_MOBILE360_PASSWORD }}"
+        - name: "MOBILE360_SHORTCODE_MASK"
+          value: "{{ TH_ENV_MOBILE360_SHORTCODE_MASK }}"
+        - name: "MOBILE360_API_URL"
+          value: "{{ TH_ENV_MOBILE360_API_URL }}"
+        - name: "JWT_EXPIRATION"
+          value: "{{ TH_ENV_JWT_EXPIRATION }}"
+        - name: "JWT_REFRESH_EXPIRATION"
+          value: "{{ TH_ENV_JWT_REFRESH_EXPIRATION }}"
+        - name: "JWT_ISSUER"
+          value: "{{ TH_ENV_JWT_ISSUER }}"
+        - name: "JWT_SECRET"
+          value: "{{ TH_ENV_JWT_SECRET }}"
+        - name: "JWT_REFRESH_SECRET"
+          value: "{{ TH_ENV_JWT_REFRESH_SECRET }}"
+        - name: "AWS_CONFIG"
+          value: "{{ TH_ENV_AWS_CONFIG }}"
+        - name: "AWS_MEDIA_URL"
+          value: "{{ TH_ENV_AWS_MEDIA_URL }}"
+        - name: "AWS_S3_BUCKET"
+          value: "{{ TH_ENV_AWS_S3_BUCKET }}"
+        - name: "AWS_S3_ACCESS_KEY_ID"
+          value: "{{ TH_ENV_AWS_S3_ACCESS_KEY_ID }}"
+        - name: "AWS_S3_SECRET_ACCESS_KEY"
+          value: "{{ TH_ENV_AWS_S3_SECRET_ACCESS_KEY }}"
+        - name: "REDIRECTION_URL"
+          value: "{{ TH_ENV_REDIRECTION_URL }}"
+        - name: "API_URL"
+          value: "{{ TH_ENV_API_URL }}"
+        - name: "USE_DOCKER"
+          value: "{{ TH_ENV_USE_DOCKER }}"
+        - name: "KINESIS_IMPRESSION_STREAM"
+          value: "{{ TH_ENV_KINESIS_IMPRESSION_STREAM }}"
+        - name: "KINESIS_PROMO_STREAM"
+          value: "{{ TH_ENV_KINESIS_PROMO_STREAM }}"
+        - name: "KINESIS_CAMPAIGN_STREAM"
+          value: "{{ TH_ENV_KINESIS_CAMPAIGN_STREAM }}"
+        - name: "AWS_SNS_ACCESS_KEY_ID"
+          value: "{{ TH_ENV_AWS_SNS_ACCESS_KEY_ID }}"
+        - name: "AWS_SNS_SECRET_ACCESS_KEY"
+          value: "{{ TH_ENV_AWS_SNS_SECRET_ACCESS_KEY }}"
+        - name: "APP_VERSION"
+          value: "{{ TH_ENV_APP_VERSION }}"
+        - name: "APP_BUILD_NUMBER"
+          value: "{{ TH_ENV_APP_BUILD_NUMBER }}"
+        - name: "APP_IS_BREAKING"
+          value: "{{ TH_ENV_APP_IS_BREAKING }}"
+        - name: "GOOGLE_PLAYSTORE_LINK"
+          value: "{{ TH_ENV_GOOGLE_PLAYSTORE_LINK }}"
+        - name: "APPLE_APPSTORE_LINK"
+          value: "{{ TH_ENV_APPLE_APPSTORE_LINK }}"
+        - name: "KINESIS_DAILY_REPORT_STREAM"
+          value: "{{ TH_ENV_KINESIS_DAILY_REPORT_STREAM }}"
+        - name: "TWILIO_ACCOUNT_SID"
+          value: "{{ TH_ENV_TWILIO_ACCOUNT_SID }}"
+        - name: "TWILIO_AUTH_TOKEN"
+          value: "{{ TH_ENV_TWILIO_AUTH_TOKEN }}"
+        - name: "AU_SMS_PROVIDER"
+          value: "{{ TH_ENV_AU_SMS_PROVIDER }}"
+        - name: "VERIFICATION_CODE_HASH"
+          value: "{{ TH_ENV_VERIFICATION_CODE_HASH }}"
+        - name: "AWS_KINESIS_ACCESS_KEY_ID"
+          value: "{{ TH_ENV_AWS_KINESIS_ACCESS_KEY_ID }}"
+        - name: "AWS_KINESIS_SECRET_ACCESS_KEY"
+          value: "{{ TH_ENV_AWS_KINESIS_SECRET_ACCESS_KEY }}"
+        - name: "FCM_SUBSCRIBE_URL"
+          value: "{{ TH_ENV_FCM_SUBSCRIBE_URL }}"
+        - name: "FCM_UNSUBSCRIBE_URL"
+          value: "{{ TH_ENV_FCM_UNSUBSCRIBE_URL }}"
+      image: "{{ TH_ECR_IMAGE }}"
+      logConfiguration:
+        logDriver: awslogs
+        options:
+          awslogs-group: "{{ TH_ECS_LOG_GROUP }}"
+          awslogs-region: "{{ TH_REGION }}"
+          awslogs-stream-prefix: ecs
+      memoryReservation: "{{ TH_CONTAINER_MEM_RESERVATION }}"
+      portMappings:
+      - containerPort: "{{ TH_CONTAINER_PORT }}"
+    execution_role_arn: "{{ TH_EXECUTION_ROLE_ARN }}"
+    family: "{{ TH_SERVICE_NAME }}"
+    force_create: yes
+    launch_type: FARGATE
+    cpu: "{{ TH_CPU }}"
+    memory: "{{ TH_MEMORY }}"
+    network_mode: awsvpc
+    region: "{{ TH_REGION }}"
+    state: present
+  register: task_output
+
+- name: Get ECS service info
+  ecs_service_info:
+    cluster: "{{ TH_CLUSTER_NAME }}"
+    service: "{{ TH_SERVICE_NAME }}"
+    details: true
+  register: ecs_service_facts_result
+
+- set_fact:
+    loadbalancers: "{{ ecs_service_facts_result.services[0].loadBalancers }}"
+  when: ecs_service_facts_result.services | count
+
+- name: Update service to latest task definition
+  ecs_service:
+    cluster: "{{ TH_CLUSTER_NAME }}"
+    desired_count: "{{ TH_TASK_COUNT }}"
+    deployment_configuration:
+      minimum_healthy_percent: 50
+      maximum_percent: 100
+    load_balancers: "{{ loadbalancers }}"
+    name: "{{ TH_SERVICE_NAME }}"
+    state: present
+    task_definition: "{{ TH_TASK_DEFINITION_NAME }}"

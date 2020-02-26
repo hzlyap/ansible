@@ -1,0 +1,22 @@
+---
+- name: Install plugin-tmprepo
+  yum:
+    name: yum-plugin-tmprepo
+
+- name: Install spacewalk repo
+  shell: yum install -y spacewalk-repo --tmprepo=https://copr-be.cloud.fedoraproject.org/results/%40spacewalkproject/spacewalk-2.9/epel-7-x86_64/repodata/repomd.xml --nogpg
+
+- name: Install additional packages
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+ 
+- name: Install postgresql server
+  yum:
+    name: spacewalk-setup-postgresql
+    state: present
+
+- name: Install spacewalk
+  yum:
+    name: spacewalk-postgresql
+    state: present

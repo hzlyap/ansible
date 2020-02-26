@@ -1,0 +1,144 @@
+---
+- name: Register new task definition
+  ecs_taskdefinition:
+    containers:
+    - name: "{{ CMS_CONTAINER_NAME }}"
+      cpu: "{{ CMS_CONTAINER_CPU }}"
+      command:
+        - >
+          /start.sh
+      essential: true
+      environment:
+        - name: "HOST"
+          value: "{{ CMS_ENV_HOST }}"
+        - name: "PORT"
+          value: "{{ CMS_ENV_PORT }}"
+        - name: "NODE_ENV"
+          value: "{{ CMS_ENV_NODE_ENV }}"
+        - name: "FCM_PUSH_TOKEN"
+          value: "{{ CMS_ENV_FCM_PUSH_TOKEN }}"
+        - name: "MQTT_BROKER"
+          value: "{{ CMS_ENV_MQTT_BROKER }}"
+        - name: "MOBILE360_USERNAME"
+          value: "{{ CMS_ENV_MOBILE360_USERNAME }}"
+        - name: "MOBILE360_PASSWORD"
+          value: "{{ CMS_ENV_MOBILE360_PASSWORD }}"
+        - name: "MOBILE360_SHORTCODE_MASK"
+          value: "{{ CMS_ENV_MOBILE360_SHORTCODE_MASK }}"
+        - name: "MOBILE360_API_URL"
+          value: "{{ CMS_ENV_MOBILE360_API_URL }}"
+        - name: "JWT_EXPIRATION"
+          value: "{{ CMS_ENV_JWT_EXPIRATION }}"
+        - name: "JWT_REFRESH_EXPIRATION"
+          value: "{{ CMS_ENV_JWT_REFRESH_EXPIRATION }}"
+        - name: "JWT_ISSUER"
+          value: "{{ CMS_ENV_JWT_ISSUER }}"
+        - name: "JWT_SECRET"
+          value: "{{ CMS_ENV_JWT_SECRET }}"
+        - name: "JWT_REFRESH_SECRET"
+          value: "{{ CMS_ENV_JWT_REFRESH_SECRET }}"
+        - name: "AWS_CONFIG"
+          value: "{{ CMS_ENV_AWS_CONFIG }}"
+        - name: "AWS_MEDIA_URL"
+          value: "{{ CMS_ENV_AWS_MEDIA_URL }}"
+        - name: "AWS_S3_BUCKET"
+          value: "{{ CMS_ENV_AWS_S3_BUCKET }}"
+        - name: "AWS_S3_ACCESS_KEY_ID"
+          value: "{{ CMS_ENV_AWS_S3_ACCESS_KEY_ID }}"
+        - name: "AWS_S3_SECRET_ACCESS_KEY"
+          value: "{{ CMS_ENV_AWS_S3_SECRET_ACCESS_KEY }}"
+        - name: "AWS_SNS_ACCESS_KEY_ID"
+          value: "{{ CMS_ENV_AWS_SNS_ACCESS_KEY_ID }}"
+        - name: "AWS_SNS_SECRET_ACCESS_KEY"
+          value: "{{ CMS_ENV_AWS_SNS_SECRET_ACCESS_KEY }}"
+        - name: "REDIRECTION_URL"
+          value: "{{ CMS_ENV_REDIRECTION_URL }}"
+        - name: "APP_VERSION"
+          value: "{{ CMS_ENV_APP_VERSION }}"
+        - name: "APP_BUILD_NUMBER"
+          value: "{{ CMS_ENV_APP_BUILD_NUMBER }}"
+        - name: "APP_IS_BREAKING"
+          value: "{{ CMS_ENV_APP_IS_BREAKING }}"
+        - name: "GOOGLE_PLAYSTORE_LINK"
+          value: "{{ CMS_ENV_GOOGLE_PLAYSTORE_LINK }}"
+        - name: "APPLE_APPSTORE_LINK"
+          value: "{{ CMS_ENV_APPLE_APPSTORE_LINK }}"
+        - name: "PROMO_QRCODE_URL"
+          value: "{{ CMS_ENV_PROMO_QRCODE_URL }}"
+        - name: "MEDIA_URL"
+          value: "{{ CMS_ENV_MEDIA_URL }}"
+        - name: "PG_HOST"
+          value: "{{ CMS_ENV_PG_HOST }}"
+        - name: "PG_PORT"
+          value: "{{ CMS_ENV_PG_PORT }}"
+        - name: "PG_USER"
+          value: "{{ CMS_ENV_PG_USER }}"
+        - name: "PG_PASSWORD"
+          value: "{{ CMS_ENV_PG_PASSWORD }}"
+        - name: "PG_DB"
+          value: "{{ CMS_ENV_PG_DB }}"
+        - name: "CMS_PG_HOST"
+          value: "{{ CMS_ENV_CMS_PG_HOST }}"
+        - name: "CMS_PG_PORT"
+          value: "{{ CMS_ENV_CMS_PG_PORT }}"
+        - name: "CMS_PG_USER"
+          value: "{{ CMS_ENV_CMS_PG_USER }}"
+        - name: "CMS_PG_PASSWORD"
+          value: "CMS_ENV_CMS_PG_PASSWORD }}"
+        - name: "CMS_PG_DB"
+          value: "{{ CMS_ENV_CMS_PG_DB }}"
+        - name: "KINESIS_STREAM"
+          value: "{{ CMS_ENV_KINESIS_STREAM }}"
+        - name: "AWS_REGION"
+          value: "{{ CMS_ENV_AWS_REGION }}"
+        - name: "AWS_KINESIS_ACCESS_KEY_ID"
+          value: "{{ CMS_ENV_AWS_KINESIS_ACCESS_KEY_ID }}"
+        - name: "AWS_KINESIS_SECRET_ACCESS_KEY"
+          value: "CMS_ENV_AWS_KINESIS_SECRET_ACCESS_KEY }}"
+        - name: "CMS_ENV"
+          value: "{{ CMS_ENV_CMS_ENV }}"
+        - name: "USE_DOCKER"
+          value: "{{ CMS_ENV_USE_DOCKER }}"
+      image: "{{ CMS_ECR_IMAGE }}"
+      logConfiguration:
+        logDriver: awslogs
+        options:
+          awslogs-group: "{{ CMS_ECS_LOG_GROUP }}"
+          awslogs-region: "{{ CMS_REGION }}"
+          awslogs-stream-prefix: ecs
+      memoryReservation: "{{ CMS_CONTAINER_MEM_RESERVATION }}"
+      portMappings:
+      - containerPort: "{{ CMS_CONTAINER_PORT }}"
+    execution_role_arn: "{{ CMS_EXECUTION_ROLE_ARN }}"
+    family: "{{ CMS_SERVICE_NAME }}"
+    force_create: yes
+    launch_type: FARGATE
+    cpu: "{{ CMS_CPU }}"
+    memory: "{{ CMS_MEMORY }}"
+    network_mode: awsvpc
+    region: "{{ CMS_REGION }}"
+    state: present
+  register: task_output
+
+- name: Get ECS service info
+  ecs_service_info:
+    cluster: "{{ CMS_CLUSTER_NAME }}"
+    service: "{{ CMS_SERVICE_NAME }}"
+    details: true
+  register: ecs_service_facts_result
+
+- set_fact:
+    loadbalancers: "{{ ecs_service_facts_result.services[0].loadBalancers }}"
+  when: ecs_service_facts_result.services | count
+
+- name: Update service to latest task definition
+  ecs_service:
+    cluster: "{{ CMS_CLUSTER_NAME }}"
+    desired_count: "{{ CMS_TASK_COUNT }}"
+    deployment_configuration:
+      minimum_healthy_percent: 50
+      maximum_percent: 100
+    load_balancers: "{{ loadbalancers }}"
+    name: "{{ CMS_SERVICE_NAME }}"
+    state: present
+    task_definition: "{{ CMS_TASK_DEFINITION_NAME }}"

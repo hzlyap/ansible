@@ -1,0 +1,12 @@
+- name: Install squidproxy
+  command: yum install -y squid
+#  notify:
+#  - restart squid
+- name: Enable SQUID during boot
+  service: name=squid state=started enabled=yes
+- name: Copy Squid config
+  copy:
+   src: /Users/rosegeronimo/git/devops-ansible/roles/squidproxy/files/squid.conf 
+   dest: /etc/squid/squid.conf
+- name: restart
+  service: name=squid state=restarted

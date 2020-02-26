@@ -1,0 +1,12 @@
+---
+- hosts: jenkins
+  become_user: root
+  roles: 
+    - basic-packages
+    - jenkins
+
+- hosts: spacewalk
+  become_user: root
+  roles:
+    - basic-packages
+    - spacewalk

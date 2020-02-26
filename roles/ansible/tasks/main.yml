@@ -23,8 +23,9 @@
 
 - name: Change permissions for ansible module in python
   file:
-    path: '/usr/lib/python2.7/site-packages'
+    path: '/usr/lib/python2.7/site-packages/ansible'
     owner: root
     group: root
     mode: '0755'
     state: directory
+    recurse: yes

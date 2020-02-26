@@ -1,0 +1,6 @@
+---
+- hosts: bastion
+  become_user: root
+  roles: 
+    - basic-packages
+    - ansible

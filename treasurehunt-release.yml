@@ -1,7 +1,8 @@
+---
 - hosts: localhost
   become_user: root
   vars_files:
     - ./group_vars/treasurehunt-release.vault
     - ./group_vars/treasurehunt-release.yml
-  roles:
-    - treasurehunt-release
+  roles: 
+    - treasurehunt-api
